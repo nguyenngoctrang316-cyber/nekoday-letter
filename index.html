@@ -33,7 +33,7 @@
 
     .card {
       background: var(--card-bg);
-      max-width: 640px;
+      max-width: 680px;
       width: 100%;
       border-radius: 16px;
       padding: 40px;
@@ -103,12 +103,11 @@
       font-weight: normal;
     }
 
-    /* 正文样式：恢复原来的 1.8 行高与段落间距 */
+    /* 正文样式 */
     .content {
       font-size: 1rem;
       line-height: 1.8;
       color: #4a5568;
-      min-height: 240px;
     }
 
     .content p {
@@ -120,7 +119,6 @@
       font-weight: 600;
     }
 
-    /* 闪烁光标 */
     .typewriter-cursor {
       display: inline-block;
       font-weight: 700;
@@ -132,6 +130,51 @@
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
+    }
+
+    /* 插画相册区域 */
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 500px) {
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .photo-card {
+      background: #fafbfc;
+      border: 1px solid #edf2f7;
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      text-align: center;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 240px;
+      object-fit: contain;
+      background-color: #ffffff;
+      border-radius: 8px;
+      display: block;
+    }
+
+    .photo-caption {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: #718096;
     }
 
     .footer {
@@ -147,7 +190,7 @@
     }
 
     .terminal-meta {
-      font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.75rem;
       color: #a0aec0;
       margin-top: 8px;
@@ -157,26 +200,36 @@
 <body>
 
   <div class="card">
-    <!-- 音乐控制按钮 -->
     <button class="music-btn" id="musicBtn" title="播放/暂停音乐">
       <span class="music-icon">🎵</span>
       <span class="music-text">BGM</span>
     </button>
 
-    <!-- 音频元素 -->
     <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
 
     <div class="header">
       <h1>来自洛喵喵的通讯信件 <span class="badge">Online</span></h1>
     </div>
 
-    <!-- 正文段落容器 -->
-    <div class="content" id="letterContainer" title="点击可直接跳过打字">
+    <!-- 正文区域 -->
+    <div class="content" id="letterContainer" title="点击可跳过打字动画">
       <p><span class="text-slot"></span></p>
       <p><span class="text-slot"></span></p>
       <p><span class="text-slot"></span></p>
       <p><span class="text-slot"></span></p>
       <p><span class="text-slot"></span></p>
+    </div>
+
+    <!-- 双图展示区域 -->
+    <div class="gallery">
+      <div class="photo-card">
+        <img src="miaomiao.jpg" alt="猫咖工作的洛喵喵">
+        <div class="photo-caption">🐾 在猫咖工作的洛喵喵</div>
+      </div>
+      <div class="photo-card">
+        <img src="huizhouyi.jpg" alt="惠州依">
+        <div class="photo-caption">✨ 铃兰姐创作的「惠州依」</div>
+      </div>
     </div>
 
     <div class="footer">
@@ -186,7 +239,7 @@
   </div>
 
   <script>
-    // 1. 音乐控制
+    // 音乐播放控制
     const musicBtn = document.getElementById('musicBtn');
     const bgm = document.getElementById('bgm');
     let isPlaying = false;
@@ -201,7 +254,7 @@
           musicBtn.classList.add('playing');
           musicBtn.querySelector('.music-text').textContent = '播放中';
         }).catch(err => {
-          console.warn('音频未加载或自动播放受限:', err);
+          console.warn('播放受阻:', err);
         });
       }
       isPlaying = !isPlaying;
@@ -223,7 +276,7 @@
       document.removeEventListener('click', initAudio);
     }, { once: true });
 
-    // 2. 打字机数据结构（段落中保留了惠州依的高亮 span）
+    // 打字机逻辑
     const paragraphsData = [
       [{ text: "铃兰姐展信佳喵！(ฅ´ω`ฅ)", highlight: false }],
       [{ text: "虽然平时在群里总是被大家喊“笨喵喵”，但今天本喵可是认认真真坐在猫咖的窗边，怀里抱着软乎乎的小猫给你写信呢！", highlight: false }],
@@ -287,7 +340,6 @@
       timer = setTimeout(typeNextChar, typingSpeed);
     }
 
-    // 点击正文可直接跳过动画
     container.addEventListener('click', () => {
       if (isFinished) return;
       clearTimeout(timer);
