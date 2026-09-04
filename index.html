@@ -42,10 +42,47 @@
       position: relative;
     }
 
+    /* 音乐控制按钮 */
+    .music-btn {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f7ff;
+      border: 1px solid #cce5ff;
+      color: #007acc;
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+
+    .music-btn:hover {
+      background: #e0effe;
+      transform: scale(1.05);
+    }
+
+    .music-btn.playing .music-icon {
+      display: inline-block;
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     .header {
       border-bottom: 1px dashed #e2e8f0;
       padding-bottom: 20px;
       margin-bottom: 24px;
+      padding-right: 90px;
     }
 
     .header h1 {
@@ -66,10 +103,12 @@
       font-weight: normal;
     }
 
+    /* 正文样式：恢复原来的 1.8 行高与段落间距 */
     .content {
       font-size: 1rem;
       line-height: 1.8;
       color: #4a5568;
+      min-height: 240px;
     }
 
     .content p {
@@ -79,6 +118,20 @@
     .highlight {
       color: var(--accent-color);
       font-weight: 600;
+    }
+
+    /* 闪烁光标 */
+    .typewriter-cursor {
+      display: inline-block;
+      font-weight: 700;
+      color: var(--primary-color);
+      animation: blink 0.8s infinite;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     .footer {
@@ -104,16 +157,26 @@
 <body>
 
   <div class="card">
+    <!-- 音乐控制按钮 -->
+    <button class="music-btn" id="musicBtn" title="播放/暂停音乐">
+      <span class="music-icon">🎵</span>
+      <span class="music-text">BGM</span>
+    </button>
+
+    <!-- 音频元素 -->
+    <audio id="bgm" src="music.mp3" loop preload="auto"></audio>
+
     <div class="header">
       <h1>来自洛喵喵的通讯信件 <span class="badge">Online</span></h1>
     </div>
 
-    <div class="content">
-      <p>铃兰姐展信佳喵！(ฅ´ω`ฅ)</p>
-      <p>虽然平时在群里总是被大家喊“笨喵喵”，但今天本喵可是认认真真坐在猫咖的窗边，怀里抱着软乎乎的小猫给你写信呢！</p>
-      <p>想对铃兰姐说好多好多声谢谢呀！首先最最感谢的就是那张画啦——画里的本喵穿着女仆装笑得超开心，一直都有好好珍藏着呢！当然还有超级可爱的<span class="highlight">惠州依</span>！</p>
-      <p>悄悄告诉你，皂皂经常跟我夸你特别善解人意，不仅温柔友善，还总替他着想、帮他分担群里的烦心事。群里有你罩着，连本喵都觉得超级安心！</p>
-      <p>希望铃兰姐学业顺顺利利，每天都开开心心！要是哪天累了，随时欢迎来猫咖，本喵请你吃刚烤好的提拉米苏和小蛋糕喵~</p>
+    <!-- 正文段落容器 -->
+    <div class="content" id="letterContainer" title="点击可直接跳过打字">
+      <p><span class="text-slot"></span></p>
+      <p><span class="text-slot"></span></p>
+      <p><span class="text-slot"></span></p>
+      <p><span class="text-slot"></span></p>
+      <p><span class="text-slot"></span></p>
     </div>
 
     <div class="footer">
@@ -122,5 +185,129 @@
     </div>
   </div>
 
+  <script>
+    // 1. 音乐控制
+    const musicBtn = document.getElementById('musicBtn');
+    const bgm = document.getElementById('bgm');
+    let isPlaying = false;
+
+    function toggleMusic() {
+      if (isPlaying) {
+        bgm.pause();
+        musicBtn.classList.remove('playing');
+        musicBtn.querySelector('.music-text').textContent = 'BGM';
+      } else {
+        bgm.play().then(() => {
+          musicBtn.classList.add('playing');
+          musicBtn.querySelector('.music-text').textContent = '播放中';
+        }).catch(err => {
+          console.warn('音频未加载或自动播放受限:', err);
+        });
+      }
+      isPlaying = !isPlaying;
+    }
+
+    musicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMusic();
+    });
+
+    document.addEventListener('click', function initAudio() {
+      if (!isPlaying) {
+        bgm.play().then(() => {
+          isPlaying = true;
+          musicBtn.classList.add('playing');
+          musicBtn.querySelector('.music-text').textContent = '播放中';
+        }).catch(() => {});
+      }
+      document.removeEventListener('click', initAudio);
+    }, { once: true });
+
+    // 2. 打字机数据结构（段落中保留了惠州依的高亮 span）
+    const paragraphsData = [
+      [{ text: "铃兰姐展信佳喵！(ฅ´ω`ฅ)", highlight: false }],
+      [{ text: "虽然平时在群里总是被大家喊“笨喵喵”，但今天本喵可是认认真真坐在猫咖的窗边，怀里抱着软乎乎的小猫给你写信呢！", highlight: false }],
+      [
+        { text: "想对铃兰姐说好多好多声谢谢呀！首先最最感谢的就是那张画啦——画里的本喵穿着女仆装笑得超开心，一直都有好好珍藏着呢！当然还有超级可爱的", highlight: false },
+        { text: "惠州依", highlight: true },
+        { text: "！", highlight: false }
+      ],
+      [{ text: "悄悄告诉你，皂皂经常跟我夸你特别善解人意，不仅温柔友善，还总替他着想、帮他分担群里的烦心事。群里有你罩着，连本喵都觉得超级安心！", highlight: false }],
+      [{ text: "希望铃兰姐学业顺顺利利，每天都开开心心！要是哪天累了，随时欢迎来猫咖，本喵请你吃刚烤好的提拉米苏和小蛋糕喵~", highlight: false }]
+    ];
+
+    const slots = document.querySelectorAll('.text-slot');
+    const container = document.getElementById('letterContainer');
+
+    const cursor = document.createElement('span');
+    cursor.className = 'typewriter-cursor';
+    cursor.textContent = '|';
+
+    let pIdx = 0;
+    let segIdx = 0;
+    let charIdx = 0;
+    let currentSpan = null;
+    let timer = null;
+    let isFinished = false;
+    const typingSpeed = 45;
+
+    function typeNextChar() {
+      if (pIdx >= paragraphsData.length) {
+        isFinished = true;
+        setTimeout(() => {
+          cursor.remove();
+        }, 2000);
+        return;
+      }
+
+      const currentPara = paragraphsData[pIdx];
+      const currentSegment = currentPara[segIdx];
+
+      if (charIdx === 0) {
+        currentSpan = document.createElement('span');
+        if (currentSegment.highlight) {
+          currentSpan.className = 'highlight';
+        }
+        slots[pIdx].appendChild(currentSpan);
+        slots[pIdx].appendChild(cursor);
+      }
+
+      currentSpan.textContent += currentSegment.text.charAt(charIdx);
+      charIdx++;
+
+      if (charIdx >= currentSegment.text.length) {
+        charIdx = 0;
+        segIdx++;
+        if (segIdx >= currentPara.length) {
+          segIdx = 0;
+          pIdx++;
+        }
+      }
+
+      timer = setTimeout(typeNextChar, typingSpeed);
+    }
+
+    // 点击正文可直接跳过动画
+    container.addEventListener('click', () => {
+      if (isFinished) return;
+      clearTimeout(timer);
+      isFinished = true;
+      cursor.remove();
+
+      paragraphsData.forEach((para, i) => {
+        slots[i].innerHTML = '';
+        para.forEach(seg => {
+          const span = document.createElement('span');
+          if (seg.highlight) span.className = 'highlight';
+          span.textContent = seg.text;
+          slots[i].appendChild(span);
+        });
+      });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(typeNextChar, 500);
+    });
+  </script>
 </body>
 </html>
