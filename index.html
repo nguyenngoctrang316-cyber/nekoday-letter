@@ -132,13 +132,24 @@
       50% { opacity: 0; }
     }
 
-    /* 插画相册区域 */
+    /* 插画相册区域：初始透明并下移，等待激活 */
     .gallery {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
       margin-top: 24px;
       margin-bottom: 8px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease, transform 1s ease;
+      pointer-events: none;
+    }
+
+    /* 打字完毕后添加此类，淡入浮现 */
+    .gallery.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     @media (max-width: 500px) {
@@ -220,8 +231,8 @@
       <p><span class="text-slot"></span></p>
     </div>
 
-    <!-- 双图展示区域 -->
-    <div class="gallery">
+    <!-- 双图展示区域（初始隐藏） -->
+    <div class="gallery" id="galleryArea">
       <div class="photo-card">
         <img src="miaomiao.jpg" alt="猫咖工作的洛喵喵">
         <div class="photo-caption">🐾 在猫咖工作的洛喵喵</div>
@@ -291,6 +302,7 @@
 
     const slots = document.querySelectorAll('.text-slot');
     const container = document.getElementById('letterContainer');
+    const gallery = document.getElementById('galleryArea');
 
     const cursor = document.createElement('span');
     cursor.className = 'typewriter-cursor';
@@ -304,12 +316,20 @@
     let isFinished = false;
     const typingSpeed = 45;
 
+    // 显示插画卡片
+    function revealGallery() {
+      if (gallery) {
+        gallery.classList.add('show');
+      }
+    }
+
     function typeNextChar() {
       if (pIdx >= paragraphsData.length) {
         isFinished = true;
         setTimeout(() => {
           cursor.remove();
-        }, 2000);
+          revealGallery(); // 打字结束，展示插画
+        }, 800);
         return;
       }
 
@@ -340,6 +360,7 @@
       timer = setTimeout(typeNextChar, typingSpeed);
     }
 
+    // 点击直接跳过打字并立即显示插画
     container.addEventListener('click', () => {
       if (isFinished) return;
       clearTimeout(timer);
@@ -355,6 +376,8 @@
           slots[i].appendChild(span);
         });
       });
+
+      revealGallery();
     });
 
     window.addEventListener('DOMContentLoaded', () => {
